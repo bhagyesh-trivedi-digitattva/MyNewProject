@@ -1,4 +1,5 @@
 {
   "name": "MyNewProject",
-  "displayName": "MyNewProject"
+  "displayName": "MyNewProject",
+  "entryFile": "index.js"
 }
