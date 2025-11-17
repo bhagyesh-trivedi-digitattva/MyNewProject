@@ -13,21 +13,41 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 import { colors } from "../constants/colors";
 
+const PAGE_SIZE = 10; 
+
 const ExploreScreen = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
-    fetchApiData();
+    fetchApiData(1, false); // Initial load
   }, []);
 
-  const fetchApiData = async (isRefreshing = false) => {
-    if (!isRefreshing) setLoading(true);
+  const fetchApiData = async (pageNumber = 1, isRefreshing = false) => {
+    if (!isRefreshing && pageNumber === 1) setLoading(true);
     try {
-      const res = await axios.get("https://jsonplaceholder.typicode.com/posts");
-      setData(res.data.slice(0, 10)); // Limit for clarity
+      // ✅ Fetch only limited data using API pagination
+      const res = await axios.get(
+        `https://jsonplaceholder.typicode.com/posts?_page=${pageNumber}&_limit=${PAGE_SIZE}`
+      );
+
+      const newData = res.data;
+      if (pageNumber === 1) {
+        // First page (initial or refresh)
+        setData(newData);
+      } else {
+        // Append new page data
+        setData((prev) => [...prev, ...newData]);
+      }
+
+      // Stop if fewer than PAGE_SIZE items returned
+      setHasMore(newData.length === PAGE_SIZE);
+      setPage(pageNumber);
       setError("");
     } catch (err) {
       console.error("Fetch Error:", err);
@@ -35,12 +55,21 @@ const ExploreScreen = () => {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
   };
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchApiData(true);
+    setHasMore(true);
+    fetchApiData(1, true);
+  };
+
+  const loadMoreData = async () => {
+    if (loadingMore || !hasMore || loading) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    await fetchApiData(nextPage, false);
   };
 
   const renderItem = ({ item }) => (
@@ -50,11 +79,23 @@ const ExploreScreen = () => {
     </View>
   );
 
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={styles.loadingMoreText}>Loading more...</Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
         translucent={Platform.OS === "ios"}
-        backgroundColor={Platform.OS === "android" ? colors.white : "transparent"}
+        backgroundColor={
+          Platform.OS === "android" ? colors.white : "transparent"
+        }
         barStyle="dark-content"
       />
 
@@ -73,7 +114,7 @@ const ExploreScreen = () => {
       {!loading && error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <Text style={styles.retryText} onPress={() => fetchApiData()}>
+          <Text style={styles.retryText} onPress={() => fetchApiData(1, false)}>
             Tap to retry
           </Text>
         </View>
@@ -86,6 +127,8 @@ const ExploreScreen = () => {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          onEndReached={loadMoreData}
+          onEndReachedThreshold={0.3}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -94,6 +137,7 @@ const ExploreScreen = () => {
               tintColor={colors.primary}
             />
           }
+          ListFooterComponent={renderFooter}
           ListEmptyComponent={
             <Text style={styles.emptyText}>No posts available right now.</Text>
           }
@@ -111,7 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   headerContainer: {
-    marginTop: Platform.OS === "ios" ? 10 : 20,
+    marginTop: Platform.OS === "ios" ? 10 : StatusBar.currentHeight || 20,
     marginBottom: 10,
     paddingHorizontal: 20,
   },
@@ -159,7 +203,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 30,
+    paddingBottom: Platform.OS === "ios" ? 40 : 20,
   },
   card: {
     backgroundColor: colors.white,
@@ -195,5 +239,15 @@ const styles = StyleSheet.create({
     color: colors.gray,
     fontSize: 16,
     marginTop: 20,
+  },
+  footerLoader: {
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingMoreText: {
+    fontSize: 14,
+    color: colors.gray,
+    marginTop: 6,
   },
 });

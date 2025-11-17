@@ -9,6 +9,7 @@ import {
   Image,
   Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../constants/colors';
 
@@ -22,29 +23,36 @@ const SplashScreen = ({ navigation }) => {
     // Animate progress bar
     Animated.timing(progressAnim, {
       toValue: width * 0.7,
-      duration: 4000,
+      duration: 3000,
       useNativeDriver: false,
     }).start();
 
     // Update percentage counter
     const interval = setInterval(() => {
       setPercentage(prev => {
-        const next = prev + (100 / 40);
+        const next = prev + (100 / 30);
         return next >= 100 ? 100 : Math.round(next);
       });
     }, 100);
 
-    // Navigate to Register after 4s
-    const timer = setTimeout(() => {
+    // After animation, check login state
+    const timer = setTimeout(async () => {
       clearInterval(interval);
-      navigation.replace('Auth', { screen: 'Register' });
-    }, 4000);
+
+      const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
+
+      if (isLoggedIn === 'true') {
+        navigation.replace('App');
+      } else {
+        navigation.replace('Auth');
+      }
+    }, 3000);
 
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
     };
-  }, [navigation, progressAnim]);
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -55,7 +63,7 @@ const SplashScreen = ({ navigation }) => {
       />
 
       <View style={styles.container}>
-        {/* Logo Section */}
+        {/* Logo */}
         <View style={styles.logoContainer}>
           <Image
             source={require('../assets/logo.png')}
@@ -64,11 +72,11 @@ const SplashScreen = ({ navigation }) => {
           />
         </View>
 
-        {/* App Name & Tagline */}
+        {/* App text */}
         <Text style={styles.appName}>My Awesome App</Text>
         <Text style={styles.tagline}>Getting everything ready for you</Text>
 
-        {/* Progress Section */}
+        {/* Progress Bar */}
         <View style={styles.progressContainer}>
           <View style={styles.progressInfo}>
             <Text style={styles.percentageText}>{percentage}%</Text>
@@ -77,10 +85,7 @@ const SplashScreen = ({ navigation }) => {
 
           <View style={styles.progressBackground}>
             <Animated.View
-              style={[
-                styles.progressFill,
-                { width: progressAnim },
-              ]}
+              style={[styles.progressFill, { width: progressAnim }]}
             />
           </View>
 

@@ -90,7 +90,10 @@ const OTPVerificationScreen = ({ navigation }) => {
         Alert.alert('Success', 'OTP verified successfully!', [
           {
             text: 'OK',
-            onPress: () => navigation.replace('App', { screen: 'MainTabs' }),
+            onPress: async () => {
+            await AsyncStorage.setItem('isLoggedIn', 'true');
+            navigation.replace('App');
+    },
           },
         ]);
       } else {

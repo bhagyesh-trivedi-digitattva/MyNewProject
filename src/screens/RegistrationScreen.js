@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DatePicker from 'react-native-date-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -239,18 +239,27 @@ const RegistrationScreen = ({ navigation }) => {
           </View>
           {errors.dateOfBirth && <Text style={styles.errorText}>{errors.dateOfBirth}</Text>}
 
-          <DatePicker
-            modal
-            open={showDatePicker}
-            date={formData.dateOfBirth}
-            mode="date"
-            maximumDate={new Date()}
-            onConfirm={(date) => {
-              setShowDatePicker(false);
-              updateFormData('dateOfBirth', date);
-            }}
-            onCancel={() => setShowDatePicker(false)}
-          />
+{showDatePicker && (
+  <DateTimePicker
+    value={formData.dateOfBirth}
+    mode="date"
+    display={Platform.OS === "ios" ? "spinner" : "default"}
+    maximumDate={new Date()}
+    onChange={(event, selectedDate) => {
+      // iOS - stays open
+      // Android - closes automatically
+      if (Platform.OS === "android") {
+        setShowDatePicker(false);
+      }
+
+      if (selectedDate) {
+        updateFormData("dateOfBirth", selectedDate);
+      }
+    }}
+  />
+)}
+
+
         </TouchableOpacity>
 
         {/* Address */}

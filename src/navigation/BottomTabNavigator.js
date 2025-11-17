@@ -79,7 +79,7 @@ const BottomTabNavigator = () => {
                             🔔
                         </Text>
                     ),
-                    tabBarBadge: 3,
+                    tabBarBadge: 4,
                 }}
             />
             <Tab.Screen

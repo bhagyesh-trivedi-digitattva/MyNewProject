@@ -11,9 +11,13 @@ import {
   Image,
   Platform,
 } from 'react-native';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../constants/colors';
+
+import { useSelector, useDispatch } from 'react-redux';
+import { setTestValue } from '../slices/authSlice';  // <-- Redux Test Action
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +25,12 @@ const HomeScreen = ({ navigation }) => {
   const [userData, setUserData] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerAnim = useRef(new Animated.Value(-width * 0.7)).current;
+
+  // 🔥 Redux: Read test value
+  const testValue = useSelector(state => state.auth.testValue);
+
+  // 🔥 Redux: Create dispatch
+  const dispatch = useDispatch();
 
   useEffect(() => {
     loadUserData();
@@ -45,8 +55,8 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('currentUser');
-    navigation.replace('Auth', { screen: 'Login' });
+    await AsyncStorage.removeItem('isLoggedIn');
+    navigation.replace('Auth');
   };
 
   return (
@@ -74,15 +84,22 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
-            <Text style={styles.primaryButtonText}>Explore App Features</Text>
+
+          {/* 🔥 REDUX TEST BUTTON */}
+          <TouchableOpacity
+            style={styles.primaryButton}
+            activeOpacity={0.8}
+            onPress={() => dispatch(setTestValue("Redux IS WORKING 🎉"))}
+          >
+            <Text style={styles.primaryButtonText}>TEST REDUX</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => navigation.navigate('Profile')}
-            activeOpacity={0.8}
-          >
+          {/* 🔥 SHOW REDUX VALUE */}
+          <Text style={{ marginTop: 10, fontSize: 16, color: colors.primary }}>
+            {testValue}
+          </Text>
+
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
             <Text style={styles.secondaryButtonText}>View Profile</Text>
           </TouchableOpacity>
 
@@ -221,7 +238,6 @@ const styles = StyleSheet.create({
     color: colors.gray,
   },
 
-  // Drawer Styles
   drawer: {
     position: 'absolute',
     left: 0,

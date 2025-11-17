@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from 'react-native-vector-icons/Ionicons'; 
 import { colors } from '../constants/colors';
 
 const { height } = Dimensions.get('window');
@@ -114,6 +115,16 @@ const LoginScreen = ({ navigation }) => {
         >
           {/* Header */}
           <View style={styles.header}>
+  {Platform.OS === 'ios' && navigation.canGoBack() && (
+    <TouchableOpacity
+      style={styles.backButton}
+      onPress={() => navigation.goBack()}
+      activeOpacity={0.7}
+    >
+      <Ionicons name="arrow-back" size={28} color={colors.primary} />
+    </TouchableOpacity>
+  )}
+
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Sign in to continue your journey</Text>
           </View>
@@ -199,8 +210,17 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: Platform.OS === 'ios' ? 20 : 40,
     marginBottom: 40,
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    top: Platform.OS === 'ios' ? 0 : 4,
+    padding: 8,
+    zIndex: 10,
   },
   title: {
     fontSize: 32,
