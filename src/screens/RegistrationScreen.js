@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,388 +9,448 @@ import {
   Alert,
   StatusBar,
   Platform,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { colors } from '../constants/colors';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  KeyboardAvoidingView,
+  Keyboard,
+  Modal,
+  TouchableWithoutFeedback,
+} from "react-native";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { colors } from "../constants/colors";
 
 const RegistrationScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phoneNumber: '',
-    gender: '',
+    name: "",
+    email: "",
+    phoneNumber: "",
+    gender: "",
     dateOfBirth: new Date(),
-    address: '',
+    address: "",
   });
 
   const [errors, setErrors] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [focusedField, setFocusedField] = useState(null);
 
-  const nameInputRef = useRef(null);
-  const emailInputRef = useRef(null);
-  const phoneInputRef = useRef(null);
-  const addressInputRef = useRef(null);
+  const nameRef = useRef(null);
+  const emailRef = useRef(null);
+  const phoneRef = useRef(null);
+  const addressRef = useRef(null);
 
+  // ---------------- VALIDATION ----------------
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validatePhone = (phone) => /^[0-9]{10}$/.test(phone);
-  const validateName = (name) => name.trim().length >= 6;
-  const validateAddress = (address) => address.trim().length >= 10;
+  const validatePhone = (ph) => /^[0-9]{10}$/.test(ph);
+  const validateName = (n) => n.trim().length >= 6;
+  const validateAddress = (a) => a.trim().length >= 10;
 
   const validateForm = () => {
-    const newErrors = {};
+    const e = {};
 
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    else if (!validateName(formData.name)) newErrors.name = 'Name must be at least 6 characters long';
+    if (!formData.name.trim()) e.name = "Name is required";
+    else if (!validateName(formData.name)) e.name = "Minimum 6 characters";
 
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!validateEmail(formData.email)) newErrors.email = 'Please enter a valid email address';
+    if (!formData.email.trim()) e.email = "Email required";
+    else if (!validateEmail(formData.email)) e.email = "Invalid email";
 
-    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
-    else if (!validatePhone(formData.phoneNumber)) newErrors.phoneNumber = 'Please enter a valid 10-digit phone number';
+    if (!formData.phoneNumber.trim()) e.phoneNumber = "Phone required";
+    else if (!validatePhone(formData.phoneNumber)) e.phoneNumber = "10 digits required";
 
-    if (!formData.gender) newErrors.gender = 'Please select your gender';
+    if (!formData.gender) e.gender = "Select gender";
 
-    if (!formData.address.trim()) newErrors.address = 'Address is required';
-    else if (!validateAddress(formData.address)) newErrors.address = 'Address must be at least 10 characters long';
+    if (!formData.address.trim()) e.address = "Address required";
+    else if (!validateAddress(formData.address)) e.address = "Minimum 10 characters";
 
+    // DOB Rules
     const today = new Date();
-    const minDate = new Date();
-    minDate.setFullYear(today.getFullYear() - 100);
-    const maxDate = new Date();
-    maxDate.setFullYear(today.getFullYear() - 18);
+    const min = new Date();
+    min.setFullYear(today.getFullYear() - 100);
 
-    if (formData.dateOfBirth > maxDate) newErrors.dateOfBirth = 'You must be at least 18 years old';
-    else if (formData.dateOfBirth < minDate) newErrors.dateOfBirth = 'Please enter a valid date of birth';
+    const max = new Date();
+    max.setFullYear(today.getFullYear() - 18);
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (formData.dateOfBirth > max) e.dateOfBirth = "You must be 18+";
+    if (formData.dateOfBirth < min) e.dateOfBirth = "Invalid birth date";
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const generateOTP = (phoneNumber) => phoneNumber.slice(-4);
+  // update field
+  const updateFormData = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((p) => ({ ...p, [field]: "" }));
+  };
 
+  // ---------------- submit ----------------
   const handleRegister = async () => {
     if (!validateForm()) {
-      Alert.alert('Validation Error', 'Please fill all fields correctly.');
+      Alert.alert("Validation Error", "Please correct the form.");
       return;
     }
 
-    const otp = generateOTP(formData.phoneNumber);
-    const userData = {
+    const otp = formData.phoneNumber.slice(-4);
+
+    const userObj = {
       ...formData,
       otp,
-      dateOfBirth: formData.dateOfBirth.toISOString().split('T')[0],
+      dateOfBirth: formData.dateOfBirth.toISOString().split("T")[0],
     };
 
-    try {
-      await AsyncStorage.setItem('userData', JSON.stringify(userData));
-      Alert.alert(
-        'Registration Successful',
-        `Your OTP is: ${otp}. You'll need this for login.`,
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
-      );
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save user data');
-    }
+    await AsyncStorage.setItem("userData", JSON.stringify(userObj));
+
+    Alert.alert("Success", `Your OTP is: ${otp}`, [
+      { text: "OK", onPress: () => navigation.navigate("Login") },
+    ]);
   };
 
-  const updateFormData = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
-  };
-
-  const handleFieldFocus = (field, ref) => {
-    setFocusedField(field);
-    if (ref && ref.current) ref.current.focus();
-  };
-
-  const getInputStyle = (field) => {
-    const style = [styles.input];
-    if (errors[field]) style.push(styles.inputError);
-    if (focusedField === field) style.push(styles.inputFocused);
-    return style;
-  };
-
-  const getContainerStyle = (field) => {
-    const style = [styles.inputContainer];
-    if (focusedField === field) style.push(styles.containerFocused);
-    return style;
-  };
-
+  // ------------------------------------------------------
+  // ---------------- UI START ----------------------------
+  // ------------------------------------------------------
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        translucent={Platform.OS === 'ios'}
-        backgroundColor={Platform.OS === 'android' ? colors.primary : 'transparent'}
-        barStyle={Platform.OS === 'ios' ? 'dark-content' : 'light-content'}
-      />
+      <StatusBar translucent backgroundColor={colors.primary} barStyle="light-content" />
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>Create Account</Text>
+      <KeyboardAvoidingView
+  style={{ flex: 1 }}
+  behavior={Platform.OS === "ios" ? "padding" : "height"}
+  keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+>
+  <ScrollView
+    keyboardShouldPersistTaps="handled"
+    showsVerticalScrollIndicator={false}
+    contentContainerStyle={styles.scrollContainer}
+  >
 
-        {/* Name */}
-        <TouchableOpacity
-          style={getContainerStyle('name')}
-          onPress={() => handleFieldFocus('name', nameInputRef)}
-          activeOpacity={1}
-        >
-          <Text style={styles.label}>Full Name *</Text>
-          <TextInput
-            ref={nameInputRef}
-            style={getInputStyle('name')}
-            placeholder="Enter your full name"
-            placeholderTextColor={colors.gray}
-            value={formData.name}
-            onChangeText={(text) => updateFormData('name', text)}
-            onBlur={() => setFocusedField(null)}
-          />
-          {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-        </TouchableOpacity>
-
-        {/* Email */}
-        <TouchableOpacity
-          style={getContainerStyle('email')}
-          onPress={() => handleFieldFocus('email', emailInputRef)}
-          activeOpacity={1}
-        >
-          <Text style={styles.label}>Email *</Text>
-          <TextInput
-            ref={emailInputRef}
-            style={getInputStyle('email')}
-            placeholder="Enter your email"
-            placeholderTextColor={colors.gray}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={formData.email}
-            onChangeText={(text) => updateFormData('email', text)}
-            onBlur={() => setFocusedField(null)}
-          />
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-        </TouchableOpacity>
-
-        {/* Phone */}
-        <TouchableOpacity
-          style={getContainerStyle('phoneNumber')}
-          onPress={() => handleFieldFocus('phoneNumber', phoneInputRef)}
-          activeOpacity={1}
-        >
-          <Text style={styles.label}>Phone Number *</Text>
-          <TextInput
-            ref={phoneInputRef}
-            style={getInputStyle('phoneNumber')}
-            placeholder="Enter your phone number"
-            placeholderTextColor={colors.gray}
-            keyboardType="phone-pad"
-            maxLength={10}
-            value={formData.phoneNumber}
-            onChangeText={(text) => updateFormData('phoneNumber', text)}
-            onBlur={() => setFocusedField(null)}
-          />
-          {errors.phoneNumber && <Text style={styles.errorText}>{errors.phoneNumber}</Text>}
-        </TouchableOpacity>
-
-        {/* Gender */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Gender *</Text>
-          <View style={styles.genderContainer}>
-            {['Male', 'Female', 'Other'].map((gender) => (
-              <TouchableOpacity
-                key={gender}
-                style={[
-                  styles.radioButton,
-                  formData.gender === gender && styles.radioButtonSelected,
-                ]}
-                onPress={() => updateFormData('gender', gender)}
-              >
-                <Text
-                  style={[
-                    styles.radioText,
-                    formData.gender === gender && styles.radioTextSelected,
-                  ]}
-                >
-                  {gender}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
-        </View>
-
-        {/* Date of Birth */}
-        <TouchableOpacity
-          style={[styles.inputContainer, focusedField === 'dateOfBirth' && styles.containerFocused]}
-          onPress={() => {
-            setFocusedField('dateOfBirth');
-            setShowDatePicker(true);
-          }}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.label}>Date of Birth *</Text>
-          <View
-            style={[
-              styles.dateInput,
-              errors.dateOfBirth && styles.inputError,
-              focusedField === 'dateOfBirth' && styles.inputFocused,
-            ]}
-          >
-            <Text style={styles.dateText}>{formData.dateOfBirth.toDateString()}</Text>
-          </View>
-          {errors.dateOfBirth && <Text style={styles.errorText}>{errors.dateOfBirth}</Text>}
-
-{showDatePicker && (
-  <DateTimePicker
-    value={formData.dateOfBirth}
-    mode="date"
-    display={Platform.OS === "ios" ? "spinner" : "default"}
-    maximumDate={new Date()}
-    onChange={(event, selectedDate) => {
-      // iOS - stays open
-      // Android - closes automatically
-      if (Platform.OS === "android") {
+    {/* ONLY wrap the top blank area */}
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
         setShowDatePicker(false);
-      }
+      }}
+    >
+      <View>
+        <Text style={styles.title}>Create Account</Text>
+      </View>
+    </TouchableWithoutFeedback>
 
-      if (selectedDate) {
-        updateFormData("dateOfBirth", selectedDate);
-      }
-    }}
-  />
-)}
+    {/* NOW ALL INPUTS BELOW ARE SAFE FOR SCROLLING */}
+    {/* NAME */}
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>Full Name *</Text>
+      <TextInput
+        style={[styles.input, errors.name && styles.inputError]}
+        placeholder="Enter full name"
+        placeholderTextColor={colors.gray}
+        value={formData.name}
+        onChangeText={(t) => updateFormData("name", t)}
+      />
+      {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+    </View>
 
+    {/* EMAIL */}
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>Email *</Text>
+      <TextInput
+        style={[styles.input, errors.email && styles.inputError]}
+        placeholder="Enter email"
+        placeholderTextColor={colors.gray}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={formData.email}
+        onChangeText={(t) => updateFormData("email", t)}
+      />
+      {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+    </View>
 
-        </TouchableOpacity>
+    {/* PHONE */}
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>Phone *</Text>
+      <TextInput
+        style={[styles.input, errors.phoneNumber && styles.inputError]}
+        placeholder="Enter phone number"
+        placeholderTextColor={colors.gray}
+        keyboardType="phone-pad"
+        maxLength={10}
+        value={formData.phoneNumber}
+        onChangeText={(t) => updateFormData("phoneNumber", t)}
+      />
+      {errors.phoneNumber && <Text style={styles.errorText}>{errors.phoneNumber}</Text>}
+    </View>
 
-        {/* Address */}
-        <TouchableOpacity
-          style={getContainerStyle('address')}
-          onPress={() => handleFieldFocus('address', addressInputRef)}
-          activeOpacity={1}
-        >
-          <Text style={styles.label}>Address *</Text>
-          <TextInput
-            ref={addressInputRef}
-            style={[getInputStyle('address'), styles.textArea]}
-            placeholder="Enter your full address"
-            placeholderTextColor={colors.gray}
-            multiline
-            value={formData.address}
-            onChangeText={(text) => updateFormData('address', text)}
-            onBlur={() => setFocusedField(null)}
+    {/* GENDER */}
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>Gender *</Text>
+      <View style={styles.genderRow}>
+        {["Male", "Female", "Other"].map((g) => (
+          <TouchableOpacity
+            key={g}
+            style={[
+              styles.genderBox,
+              formData.gender === g && styles.genderSelected,
+            ]}
+            onPress={() => updateFormData("gender", g)}
+          >
+            <Text
+              style={[
+                styles.genderText,
+                formData.gender === g && { color: "#fff" },
+              ]}
+            >
+              {g}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
+    </View>
+
+    {/* DATE */}
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>Date of Birth *</Text>
+      <TouchableOpacity
+        style={styles.dateInput}
+        onPress={() => {
+          Keyboard.dismiss();
+          setShowDatePicker(true);
+        }}
+      >
+        <Text style={styles.dateText}>
+          {formData.dateOfBirth.toDateString()}
+        </Text>
+      </TouchableOpacity>
+      {errors.dateOfBirth && (
+        <Text style={styles.errorText}>{errors.dateOfBirth}</Text>
+      )}
+    </View>
+
+    {/* ADDRESS */}
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>Address *</Text>
+      <TextInput
+        style={[
+          styles.input,
+          styles.textArea,
+          errors.address && styles.inputError,
+        ]}
+        placeholder="Enter your address"
+        placeholderTextColor={colors.gray}
+        multiline
+        value={formData.address}
+        onChangeText={(t) => updateFormData("address", t)}
+      />
+      {errors.address && <Text style={styles.errorText}>{errors.address}</Text>}
+    </View>
+
+    {/* REGISTER */}
+    <TouchableOpacity style={styles.registerBtn} onPress={handleRegister}>
+      <Text style={styles.registerText}>Register</Text>
+    </TouchableOpacity>
+
+    {/* 👉 DIRECT LOGIN LINK */}
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.loginLink}>
+              Already have an account?{" "}
+              <Text style={styles.loginBold}>Login</Text>
+            </Text>
+          </TouchableOpacity>
+  </ScrollView>
+</KeyboardAvoidingView>
+
+      {/* ---------------- DATE PICKER ---------------- */}
+      {showDatePicker && (
+        Platform.OS === "ios" ? (
+          // ---------- iOS Custom Modal ----------
+          <Modal transparent animationType="fade">
+            <View style={styles.modalOverlay} />
+
+            <View style={styles.modalCenter}>
+              <View style={styles.modalContainer}>
+                <Text style={styles.modalTitle}>Select Date of Birth</Text>
+
+                <DateTimePicker
+                  value={formData.dateOfBirth}
+                  mode="date"
+                  display="spinner"
+                  onChange={(event, selectedDate) => {
+                    if (selectedDate) updateFormData("dateOfBirth", selectedDate);
+                  }}
+                  style={{ width: "100%" }}
+                />
+
+                <View style={styles.modalBtnRow}>
+                  <TouchableOpacity
+                    style={[styles.modalBtn, styles.cancelBtn]}
+                    onPress={() => setShowDatePicker(false)}
+                  >
+                    <Text style={styles.cancelText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.modalBtn, styles.confirmBtn]}
+                    onPress={() => setShowDatePicker(false)}
+                  >
+                    <Text style={styles.confirmText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        ) : (
+          // ---------- ANDROID NATIVE POPUP ----------
+          <DateTimePicker
+            value={formData.dateOfBirth}
+            mode="date"
+            display="calendar"
+            maximumDate={new Date()}
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) updateFormData("dateOfBirth", selectedDate);
+            }}
           />
-          {errors.address && <Text style={styles.errorText}>{errors.address}</Text>}
-        </TouchableOpacity>
-
-        {/* Register Button */}
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister} activeOpacity={0.8}>
-          <Text style={styles.registerButtonText}>Register</Text>
-        </TouchableOpacity>
-
-        {/* Login Link */}
-        <TouchableOpacity style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginText}>
-            Already have an account? <Text style={styles.loginLinkText}>Login</Text>
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
+        )
+      )}
     </SafeAreaView>
   );
 };
 
 export default RegistrationScreen;
 
+// ---------------- STYLES ----------------
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.white },
-  scrollContainer: { flexGrow: 1, padding: 20 },
+  scrollContainer: {
+    padding: 20,
+    paddingBottom: 50,
+  },
+
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: "bold",
+    textAlign: "center",
     color: colors.primary,
-    textAlign: 'center',
-    marginBottom: 30,
-    marginTop: 20,
+    marginBottom: 20,
   },
-  inputContainer: { marginBottom: 20, padding: 8, borderRadius: 12 },
-  containerFocused: {
-    backgroundColor: '#F8F9FA',
-    borderWidth: 1,
-    borderColor: colors.primary,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary,
-        shadowOpacity: 0.2,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-      },
-      android: { elevation: 3 },
-    }),
+
+  inputContainer: { marginBottom: 18 },
+
+  label: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.dark,
+    marginBottom: 6,
   },
-  label: { fontSize: 16, fontWeight: '600', color: colors.dark, marginBottom: 8, marginLeft: 4 },
+
   input: {
     borderWidth: 1.5,
     borderColor: colors.light,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+    padding: 14,
+    borderRadius: 10,
+    fontSize: 15,
     backgroundColor: colors.white,
-    color: colors.dark,
   },
-  inputFocused: {
-    borderColor: colors.primary,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary,
-        shadowOpacity: 0.2,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-      },
-      android: { elevation: 2 },
-    }),
-  },
-  inputError: { borderColor: colors.danger, backgroundColor: '#FFF5F5' },
-  errorText: { color: colors.danger, fontSize: 14, marginTop: 5, marginLeft: 8 },
-  textArea: { height: 100, textAlignVertical: 'top' },
-  genderContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
-  radioButton: {
+
+  inputError: { borderColor: colors.danger, backgroundColor: "#FFF4F4" },
+  errorText: { color: colors.danger, marginTop: 5 },
+
+  genderRow: { flexDirection: "row", gap: 10 },
+
+  genderBox: {
     flex: 1,
-    padding: 16,
+    padding: 14,
+    borderRadius: 10,
     borderWidth: 1.5,
     borderColor: colors.light,
-    borderRadius: 12,
-    alignItems: 'center',
-    backgroundColor: colors.white,
+    alignItems: "center",
   },
-  radioButtonSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
-  radioText: { fontSize: 16, color: colors.gray, fontWeight: '500' },
-  radioTextSelected: { color: colors.white },
+  genderSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  genderText: { fontSize: 15, fontWeight: "600" },
+
   dateInput: {
     borderWidth: 1.5,
     borderColor: colors.light,
-    borderRadius: 12,
-    padding: 16,
-    backgroundColor: colors.white,
+    padding: 14,
+    borderRadius: 10,
   },
-  dateText: { fontSize: 16, color: colors.dark },
-  registerButton: {
+  dateText: { fontSize: 15, color: colors.dark },
+
+  textArea: { height: 100, textAlignVertical: "top" },
+
+  registerBtn: {
     backgroundColor: colors.primary,
-    padding: 18,
+    padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
-    marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary,
-        shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 8,
-      },
-      android: { elevation: 6 },
-    }),
   },
-  registerButtonText: { color: colors.white, fontSize: 18, fontWeight: 'bold' },
-  loginLink: { alignItems: 'center', marginBottom: 30, padding: 10 },
-  loginText: { fontSize: 16, color: colors.gray },
-  loginLinkText: { color: colors.primary, fontWeight: 'bold' },
+  registerText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+   loginLink: {
+  textAlign: "center",
+  marginTop: 25,
+  fontSize: 20,
+  color: colors.dark,
+},
+
+loginBold: {
+  color: colors.primary,
+  fontWeight: "bold",
+},
+
+  // ---- Modal ----
+  modalOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+
+  modalCenter: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+
+  modalContainer: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.primary,
+    marginBottom: 10,
+  },
+
+  modalBtnRow: {
+    flexDirection: "row",
+    width: "100%",
+    marginTop: 20,
+    justifyContent: "space-between",
+  },
+
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  cancelBtn: { backgroundColor: "#EEE", marginRight: 10 },
+  confirmBtn: { backgroundColor: colors.primary, marginLeft: 10 },
+
+  cancelText: { fontSize: 16, color: colors.dark },
+  confirmText: { fontSize: 16, fontWeight: "bold", color: "#fff" },
 });
