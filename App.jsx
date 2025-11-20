@@ -17,9 +17,8 @@ export default function App() {
     OneSignal.initialize('f3fdc9f5-58d5-45ba-9e10-12da2bf45f48');
 
     // -------- ANDROID ONLY NOTIFICATION PERMISSION --------
-    if (Platform.OS === 'android') {
       OneSignal.Notifications.requestPermission(true);
-    }
+    
 
     // Optional: handle notification events
     OneSignal.Notifications.addEventListener('click', (event) => {

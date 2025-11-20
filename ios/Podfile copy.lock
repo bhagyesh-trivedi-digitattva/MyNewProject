@@ -2639,7 +2639,6 @@ DEPENDENCIES:
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
-  - OneSignalXCFramework (< 6.0, >= 5.0.0)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
@@ -2968,6 +2967,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 689c8e04277f3ad631e60fe2a08e41d411daf8eb
 
-PODFILE CHECKSUM: 326056c3ce7cbe4351cc7708b87e4c18d0372319
+PODFILE CHECKSUM: c367b8dd58dae2db30bca5d97a245ae0cb73bfda
 
 COCOAPODS: 1.16.2
