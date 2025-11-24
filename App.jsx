@@ -1,35 +1,35 @@
 import React, { useEffect } from 'react';
-import { Platform } from 'react-native';
 import { Provider } from 'react-redux';
 import { store } from './src/store/store';
 import AppNavigator from './src/navigation/AppNavigator';
+import { ThemeProvider } from './src/context/ThemeContext';
 
-// OneSignal import
 import { OneSignal, LogLevel } from 'react-native-onesignal';
-
+import { requestCameraPermission,requestLocationPermission,requestStoragePermission,requestMicrophonePermission,requestGalleryPermission } from './src/utils/permissions';
 export default function App() {
+  useEffect(() => {
+  requestCameraPermission();
+  requestLocationPermission();
+  requestMicrophonePermission();
+  requestGalleryPermission();
+  requestStoragePermission();
+}, []);
 
   useEffect(() => {
-    // Enable logs (remove in production)
     OneSignal.Debug.setLogLevel(LogLevel.Verbose);
-
-    // Initialize OneSignal
     OneSignal.initialize('f3fdc9f5-58d5-45ba-9e10-12da2bf45f48');
+    OneSignal.Notifications.requestPermission(true);
 
-    // -------- ANDROID ONLY NOTIFICATION PERMISSION --------
-      OneSignal.Notifications.requestPermission(true);
-    
-
-    // Optional: handle notification events
     OneSignal.Notifications.addEventListener('click', (event) => {
       console.log('Notification clicked:', event);
     });
-
   }, []);
 
   return (
     <Provider store={store}>
-      <AppNavigator />
+      <ThemeProvider>
+        <AppNavigator />
+      </ThemeProvider>
     </Provider>
   );
 }

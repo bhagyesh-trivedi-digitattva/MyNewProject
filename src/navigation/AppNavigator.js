@@ -1,15 +1,30 @@
 import SplashScreen from "../screens/SplashScreen";
-import React from 'react';
+import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack'; // Changed import
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthStack from './AuthStack';
 import AppStack from './AppStack';
+import { ThemeContext } from '../context/ThemeContext';
 
-const Stack = createNativeStackNavigator(); // Changed to native stack
+const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
+    const { appTheme } = useContext(ThemeContext);
+
     return (
-        <NavigationContainer>
+        <NavigationContainer
+            theme={{
+        ...appTheme,            // <-- VERY IMPORTANT
+        colors: {
+          ...appTheme.colors,   // <-- KEEP ALL YOUR THEME COLORS
+          background: appTheme.colors.bg,
+          card: appTheme.colors.card,
+          text: appTheme.colors.text,
+          border: appTheme.colors.gray,
+          primary: appTheme.colors.primary,
+        },
+      }}
+        >
             <Stack.Navigator
                 initialRouteName="Splash"
                 screenOptions={{ headerShown: false }}

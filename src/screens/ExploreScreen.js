@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -11,11 +11,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
-import { colors } from "../constants/colors";
+import { ThemeContext } from "../context/ThemeContext";
 
-const PAGE_SIZE = 10; 
+const PAGE_SIZE = 10;
 
 const ExploreScreen = () => {
+  const { appTheme } = useContext(ThemeContext);
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -25,27 +27,24 @@ const ExploreScreen = () => {
   const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
-    fetchApiData(1, false); // Initial load
+    fetchApiData(1, false);
   }, []);
 
   const fetchApiData = async (pageNumber = 1, isRefreshing = false) => {
     if (!isRefreshing && pageNumber === 1) setLoading(true);
     try {
-      // ✅ Fetch only limited data using API pagination
       const res = await axios.get(
         `https://jsonplaceholder.typicode.com/posts?_page=${pageNumber}&_limit=${PAGE_SIZE}`
       );
 
       const newData = res.data;
+
       if (pageNumber === 1) {
-        // First page (initial or refresh)
         setData(newData);
       } else {
-        // Append new page data
         setData((prev) => [...prev, ...newData]);
       }
 
-      // Stop if fewer than PAGE_SIZE items returned
       setHasMore(newData.length === PAGE_SIZE);
       setPage(pageNumber);
       setError("");
@@ -73,9 +72,21 @@ const ExploreScreen = () => {
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardBody}>{item.body}</Text>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: appTheme.colors.card,
+          borderColor: appTheme.colors.gray,
+        },
+      ]}
+    >
+      <Text style={[styles.cardTitle, { color: appTheme.colors.primary }]}>
+        {item.title}
+      </Text>
+      <Text style={[styles.cardBody, { color: appTheme.colors.text }]}>
+        {item.body}
+      </Text>
     </View>
   );
 
@@ -83,38 +94,53 @@ const ExploreScreen = () => {
     if (!loadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={colors.primary} />
-        <Text style={styles.loadingMoreText}>Loading more...</Text>
+        <ActivityIndicator size="small" color={appTheme.colors.primary} />
+        <Text style={[styles.loadingMoreText, { color: appTheme.colors.gray }]}>
+          Loading more...
+        </Text>
       </View>
     );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: appTheme.colors.bg }]}
+    >
       <StatusBar
         translucent={Platform.OS === "ios"}
         backgroundColor={
-          Platform.OS === "android" ? colors.white : "transparent"
+          Platform.OS === "android" ? appTheme.colors.bg : "transparent"
         }
-        barStyle="dark-content"
+        barStyle={appTheme.dark ? "light-content" : "dark-content"}
       />
 
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>Explore</Text>
-        <Text style={styles.subtitle}>Discover amazing content</Text>
+        <Text style={[styles.title, { color: appTheme.colors.primary }]}>
+          Explore
+        </Text>
+        <Text style={[styles.subtitle, { color: appTheme.colors.gray }]}>
+          Discover amazing content
+        </Text>
       </View>
 
       {loading && (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading posts...</Text>
+          <ActivityIndicator size="large" color={appTheme.colors.primary} />
+          <Text style={[styles.loadingText, { color: appTheme.colors.gray }]}>
+            Loading posts...
+          </Text>
         </View>
       )}
 
       {!loading && error ? (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Text style={styles.retryText} onPress={() => fetchApiData(1, false)}>
+          <Text style={[styles.errorText, { color: appTheme.colors.danger }]}>
+            {error}
+          </Text>
+          <Text
+            style={[styles.retryText, { color: appTheme.colors.primary }]}
+            onPress={() => fetchApiData(1, false)}
+          >
             Tap to retry
           </Text>
         </View>
@@ -133,13 +159,15 @@ const ExploreScreen = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[colors.primary]}
-              tintColor={colors.primary}
+              colors={[appTheme.colors.primary]}
+              tintColor={appTheme.colors.primary}
             />
           }
           ListFooterComponent={renderFooter}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No posts available right now.</Text>
+            <Text style={[styles.emptyText, { color: appTheme.colors.gray }]}>
+              No posts available right now.
+            </Text>
           }
         />
       )}
@@ -152,7 +180,6 @@ export default ExploreScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
   },
   headerContainer: {
     marginTop: Platform.OS === "ios" ? 10 : StatusBar.currentHeight || 20,
@@ -162,13 +189,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: colors.primary,
     textAlign: "center",
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 16,
-    color: colors.gray,
     textAlign: "center",
   },
   loaderContainer: {
@@ -180,7 +205,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: colors.gray,
   },
   errorContainer: {
     flex: 1,
@@ -191,13 +215,11 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: colors.danger,
-    textAlign: "center",
     marginBottom: 10,
+    textAlign: "center",
   },
   retryText: {
     fontSize: 16,
-    color: colors.primary,
     fontWeight: "bold",
     textDecorationLine: "underline",
   },
@@ -206,11 +228,9 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === "ios" ? 40 : 20,
   },
   card: {
-    backgroundColor: colors.white,
     padding: 15,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#eee",
     marginBottom: 12,
     ...Platform.select({
       ios: {
@@ -219,24 +239,19 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 3 },
         shadowRadius: 4,
       },
-      android: {
-        elevation: 3,
-      },
+      android: { elevation: 3 },
     }),
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: colors.primary,
     marginBottom: 6,
   },
   cardBody: {
     fontSize: 14,
-    color: colors.gray,
   },
   emptyText: {
     textAlign: "center",
-    color: colors.gray,
     fontSize: 16,
     marginTop: 20,
   },
@@ -247,7 +262,6 @@ const styles = StyleSheet.create({
   },
   loadingMoreText: {
     fontSize: 14,
-    color: colors.gray,
     marginTop: 6,
   },
 });

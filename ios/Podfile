@@ -19,19 +19,38 @@ target 'MyNewProject' do
 
   use_react_native!(
     :path => config[:reactNativePath],
-    # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+
+  # -------------------------------------------------------
+  # ✅ Required for iOS permissions (RNPermissions 5.4.4)
+  # -------------------------------------------------------
+permissions_path = '../node_modules/react-native-permissions/ios'
+
+pod 'Permission-Camera',             :path => "#{permissions_path}/Camera"
+pod 'Permission-Microphone',         :path => "#{permissions_path}/Microphone"
+pod 'Permission-LocationWhenInUse',  :path => "#{permissions_path}/LocationWhenInUse"
+pod 'Permission-PhotoLibrary',       :path => "#{permissions_path}/PhotoLibrary"
+
+  # ADD MORE IF NEEDED:
+  # pod 'Permission-Notifications',     :path => "#{permissions_path}/Notifications"
+  # pod 'Permission-Bluetooth',         :path => "#{permissions_path}/Bluetooth"
+  # pod 'Permission-FaceID',            :path => "#{permissions_path}/FaceID"
+
+  # -------------------------------------------------------
 
   post_install do |installer|
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
     )
   end
 end
+
+# -----------------------------------------
+# OneSignal Extension
+# -----------------------------------------
 target 'OneSignalNotificationServiceExtension' do
   pod 'OneSignalXCFramework', '>= 5.0.0', '< 6.0'
 end

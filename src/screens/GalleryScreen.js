@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -11,16 +11,15 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../constants/colors";
+import { ThemeContext } from "../context/ThemeContext";
 
 const GalleryScreen = () => {
+  const { appTheme } = useContext(ThemeContext);
+
   const images = [
-    // Local Images
     require("../assets/pic1.jpg"),
     require("../assets/pic2.jpg"),
     require("../assets/pic3.jpg"),
-
-    // Network Images
     { uri: "https://picsum.photos/600/600?random=1" },
     { uri: "https://picsum.photos/600/600?random=2" },
     { uri: "https://picsum.photos/600/600?random=3" },
@@ -33,7 +32,10 @@ const GalleryScreen = () => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={styles.imageWrapper}
+      style={[
+        styles.imageWrapper,
+        { backgroundColor: appTheme.colors.card },
+      ]}
       activeOpacity={0.8}
       onPress={() => setSelectedImage(item)}
     >
@@ -42,15 +44,24 @@ const GalleryScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: appTheme.colors.bg }]}
+    >
       <StatusBar
         translucent={Platform.OS === "ios"}
-        backgroundColor={Platform.OS === "android" ? colors.white : "transparent"}
-        barStyle="dark-content"
+        backgroundColor={
+          Platform.OS === "android" ? appTheme.colors.bg : "transparent"
+        }
+        barStyle={appTheme.dark ? "light-content" : "dark-content"}
       />
 
-      <Text style={styles.header}>📸 Gallery</Text>
-      <Text style={styles.subHeader}>Local + Network Images</Text>
+      <Text style={[styles.header, { color: appTheme.colors.primary }]}>
+        📸 Gallery
+      </Text>
+
+      <Text style={[styles.subHeader, { color: appTheme.colors.gray }]}>
+        Local + Network Images
+      </Text>
 
       <FlatList
         data={images}
@@ -61,7 +72,7 @@ const GalleryScreen = () => {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Fullscreen Preview */}
+      {/* FULLSCREEN PREVIEW MODAL */}
       <Modal
         visible={!!selectedImage}
         transparent
@@ -70,11 +81,15 @@ const GalleryScreen = () => {
       >
         <View style={styles.modalContainer}>
           <TouchableOpacity
-            style={styles.closeBtn}
+            style={[
+              styles.closeBtn,
+              { backgroundColor: appTheme.colors.white },
+            ]}
             onPress={() => setSelectedImage(null)}
-            activeOpacity={0.7}
           >
-            <Text style={styles.closeText}>✕</Text>
+            <Text style={[styles.closeText, { color: appTheme.colors.primary }]}>
+              ✕
+            </Text>
           </TouchableOpacity>
 
           <Image
@@ -93,31 +108,31 @@ export default GalleryScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
   },
+
   header: {
     fontSize: 26,
     fontWeight: "bold",
-    color: colors.primary,
     textAlign: "center",
     marginTop: Platform.OS === "ios" ? 20 : 10,
   },
+
   subHeader: {
     fontSize: 14,
-    color: colors.gray,
     textAlign: "center",
     marginBottom: 10,
   },
+
   galleryContainer: {
     paddingHorizontal: 5,
     paddingBottom: 20,
   },
+
   imageWrapper: {
     flex: 1 / 3,
     margin: 5,
     borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: colors.light,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
@@ -130,10 +145,12 @@ const styles = StyleSheet.create({
       },
     }),
   },
+
   image: {
     width: "100%",
     height: 120,
   },
+
   modalContainer: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.9)",
@@ -141,16 +158,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
+
   fullImage: {
     width: "100%",
     height: "80%",
     borderRadius: 12,
   },
+
   closeBtn: {
     position: "absolute",
     top: Platform.OS === "ios" ? 60 : 40,
     right: 20,
-    backgroundColor: "#fff",
     width: 38,
     height: 38,
     borderRadius: 20,
@@ -168,9 +186,9 @@ const styles = StyleSheet.create({
       },
     }),
   },
+
   closeText: {
     fontSize: 20,
     fontWeight: "bold",
-    color: colors.primary,
   },
 });
