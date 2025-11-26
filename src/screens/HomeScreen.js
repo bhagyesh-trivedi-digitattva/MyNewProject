@@ -281,10 +281,15 @@ const handleLocation = async () => {
         ]}
       >
         <View style={styles.drawerHeader}>
-          <Image
-            source={require("../assets/user.png")}
-            style={[styles.userIcon, { tintColor: appTheme.colors.primary }]}
-          />
+         <Image
+  source={
+    userData?.profileImage
+      ? { uri: userData.profileImage }
+      : require("../assets/user.png")
+  }
+  style={styles.userIcon}
+/>
+
           <Text style={[styles.userName, { color: appTheme.colors.text }]}>{userData?.name}</Text>
           <Text style={[styles.userEmail, { color: appTheme.colors.gray }]}>{userData?.email}</Text>
         </View>

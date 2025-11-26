@@ -13,8 +13,9 @@ import {
   Keyboard,
   Modal,
   TouchableWithoutFeedback,
+  Image
 } from "react-native";
-
+import { launchImageLibrary } from "react-native-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -29,7 +30,7 @@ const RegistrationScreen = ({ navigation }) => {
     dateOfBirth: new Date(),
     address: "",
   });
-
+  const [profileImage, setProfileImage] = useState(null); 
   const [errors, setErrors] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -91,11 +92,13 @@ const RegistrationScreen = ({ navigation }) => {
 
     const otp = formData.phoneNumber.slice(-4);
 
-    const userObj = {
-      ...formData,
-      otp,
-      dateOfBirth: formData.dateOfBirth.toISOString().split("T")[0],
-    };
+   const userObj = {
+  ...formData,
+  otp,
+  profileImage: profileImage || null,
+  dateOfBirth: formData.dateOfBirth.toISOString().split("T")[0],
+};
+
 
     await AsyncStorage.setItem("userData", JSON.stringify(userObj));
 
@@ -103,6 +106,24 @@ const RegistrationScreen = ({ navigation }) => {
       { text: "OK", onPress: () => navigation.navigate("Login") },
     ]);
   };
+  const pickImage = () => {
+  launchImageLibrary(
+    {
+      mediaType: "photo",
+      quality: 0.8,
+    },
+    (response) => {
+      if (response.didCancel) return;
+      if (response.errorCode) {
+        Alert.alert("Error", "Image pick failed");
+        return;
+      }
+
+      const uri = response.assets[0].uri;
+      setProfileImage(uri);
+    }
+  );
+};
 
   // ------------------------------------------------------
   // ---------------- UI START ----------------------------
@@ -133,6 +154,29 @@ const RegistrationScreen = ({ navigation }) => {
         <Text style={styles.title}>Create Account</Text>
       </View>
     </TouchableWithoutFeedback>
+
+      <View style={{ alignItems: "center", marginBottom: 20 }}>
+  <TouchableOpacity onPress={pickImage}>
+    <Image
+      source={
+        profileImage
+          ? { uri: profileImage }
+          : require("../assets/user.png")
+      }
+      style={{
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 2,
+        borderColor: colors.primary,
+      }}
+    />
+  </TouchableOpacity>
+
+  <Text style={{ marginTop: 8, color: colors.primary }}>
+    Tap to choose profile photo
+  </Text>
+</View>
 
     {/* NOW ALL INPUTS BELOW ARE SAFE FOR SCROLLING */}
     {/* NAME */}

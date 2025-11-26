@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Platform,
+  Image,
   StatusBar,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -126,6 +127,23 @@ const ProfileScreen = () => {
                   { borderBottomColor: appTheme.colors.light },
                 ]}
               >
+                <View style={{ alignItems: "center", marginBottom: 20 }}>
+  <Image
+    source={
+      userData?.profileImage
+        ? { uri: userData.profileImage }
+        : require("../assets/user.png")
+    }
+    style={{
+      width: 110,
+      height: 110,
+      borderRadius: 55,
+      borderWidth: 2,
+      borderColor: appTheme.colors.primary,
+    }}
+  />
+</View>
+
                 <Text style={[styles.infoLabel, { color: appTheme.colors.text }]}>
                   Full Name
                 </Text>
@@ -237,6 +255,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 24,
   },
+userIcon: { 
+  width: 70, 
+  height: 70, 
+  borderRadius: 35, 
+  marginBottom: 6 
+},
 
   header: {
     alignItems: "center",
