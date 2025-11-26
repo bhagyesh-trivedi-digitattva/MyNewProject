@@ -12,6 +12,9 @@ linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
+else
+  # REQUIRED FOR GOOGLE MAPS
+  use_frameworks! :linkage => :static
 end
 
 target 'MyNewProject' do
@@ -23,20 +26,19 @@ target 'MyNewProject' do
   )
 
   # -------------------------------------------------------
-  # ✅ Required for iOS permissions (RNPermissions 5.4.4)
+  # iOS Permissions (React Native Permissions)
   # -------------------------------------------------------
-permissions_path = '../node_modules/react-native-permissions/ios'
+  permissions_path = '../node_modules/react-native-permissions/ios'
 
-pod 'Permission-Camera',             :path => "#{permissions_path}/Camera"
-pod 'Permission-Microphone',         :path => "#{permissions_path}/Microphone"
-pod 'Permission-LocationWhenInUse',  :path => "#{permissions_path}/LocationWhenInUse"
-pod 'Permission-PhotoLibrary',       :path => "#{permissions_path}/PhotoLibrary"
+  pod 'Permission-Camera',             :path => "#{permissions_path}/Camera"
+  pod 'Permission-Microphone',         :path => "#{permissions_path}/Microphone"
+  pod 'Permission-LocationWhenInUse',  :path => "#{permissions_path}/LocationWhenInUse"
+  pod 'Permission-PhotoLibrary',       :path => "#{permissions_path}/PhotoLibrary"
 
-  # ADD MORE IF NEEDED:
-  # pod 'Permission-Notifications',     :path => "#{permissions_path}/Notifications"
-  # pod 'Permission-Bluetooth',         :path => "#{permissions_path}/Bluetooth"
-  # pod 'Permission-FaceID',            :path => "#{permissions_path}/FaceID"
-
+  # -------------------------------------------------------
+  # 🚀 Google Maps SDK Required for MapView on iOS
+  # -------------------------------------------------------
+  pod 'GoogleMaps'
   # -------------------------------------------------------
 
   post_install do |installer|
@@ -45,12 +47,19 @@ pod 'Permission-PhotoLibrary',       :path => "#{permissions_path}/PhotoLibrary"
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
     )
+
+    # Fix GoogleMaps + use_frameworks warnings
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_WARN_DOCUMENTATION_COMMENTS'] = 'NO'
+      end
+    end
   end
 end
 
-# -----------------------------------------
-# OneSignal Extension
-# -----------------------------------------
+# -----------------------------------------------------
+# OneSignal Notification Extension
+# -----------------------------------------------------
 target 'OneSignalNotificationServiceExtension' do
   pod 'OneSignalXCFramework', '>= 5.0.0', '< 6.0'
 end

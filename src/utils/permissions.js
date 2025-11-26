@@ -48,12 +48,25 @@ export const requestCameraPermission = async () => {
  * Location Permission
  */
 export const requestLocationPermission = async () => {
-  const permission =
-    Platform.OS === 'ios'
-      ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
-      : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
+  if (Platform.OS === "ios") {
+    return handlePermission(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
+  }
 
-  return handlePermission(permission);
+  // ANDROID 12+ → Needs precise + approximate
+  if (Platform.Version >= 31) {
+    const preciseGranted = await handlePermission(
+      PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
+    );
+
+    const approxGranted = await handlePermission(
+      PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION
+    );
+
+    return preciseGranted || approxGranted;
+  }
+
+  // Older Android (Android 10, 11)
+  return handlePermission(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
 };
 
 /**
