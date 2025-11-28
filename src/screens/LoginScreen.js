@@ -224,7 +224,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
     marginBottom: 8,
@@ -245,7 +244,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
     color: colors.dark,
     marginBottom: 12,
   },
@@ -320,7 +318,6 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: colors.white,
     fontSize: 18,
-    fontWeight: 'bold',
   },
   registerLink: {
     alignItems: 'center',
@@ -333,6 +330,5 @@ const styles = StyleSheet.create({
   },
   registerLinkText: {
     color: colors.primary,
-    fontWeight: 'bold',
   },
 });

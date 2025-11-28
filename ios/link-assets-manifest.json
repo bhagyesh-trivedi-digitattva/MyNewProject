@@ -1,0 +1,17 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/BBHSansHegarty-Regular.ttf",
+      "sha1": "7d6b1f66d4bb15739f8809d7440e888d86a2f1bd"
+    },
+    {
+      "path": "src/assets/fonts/DancingScript-VariableFont_wght.ttf",
+      "sha1": "a54f708272bdad7e9a89c065fc07dffbeea7b5fb"
+    },
+    {
+      "path": "src/assets/fonts/PlaywriteNZGuides-Regular.ttf",
+      "sha1": "c9403cb61340404f1ad65ce64e02489aaa9fb929"
+    }
+  ]
+}

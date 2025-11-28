@@ -112,7 +112,6 @@ const styles = StyleSheet.create({
 
   header: {
     fontSize: 26,
-    fontWeight: "bold",
     textAlign: "center",
     marginTop: Platform.OS === "ios" ? 20 : 10,
   },
@@ -189,6 +188,5 @@ const styles = StyleSheet.create({
 
   closeText: {
     fontSize: 20,
-    fontWeight: "bold",
   },
 });

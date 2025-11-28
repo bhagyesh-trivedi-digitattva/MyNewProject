@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04D1B921979A468B8DE97CAA /* PlaywriteNZGuides-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C7F14C7735984C8CB5F4E553 /* PlaywriteNZGuides-Regular.ttf */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		66C5CAAF2ECDFA02008F321A /* OneSignalNotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 66C5CAA82ECDFA02008F321A /* OneSignalNotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		69F6BD5C756BC15A45AF7F90 /* Pods_OneSignalNotificationServiceExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B697D815E364C321FBA02411 /* Pods_OneSignalNotificationServiceExtension.framework */; };
@@ -14,6 +15,8 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8BA134EC7C10182CB654205B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		9CB0700E49538CDD2572285D /* Pods_MyNewProject.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34F641F6F8F581F8D67F27BC /* Pods_MyNewProject.framework */; };
+		CD566EAEDCDD4BD292C0F466 /* BBHSansHegarty-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E0CC0E53990646F2BC2A467E /* BBHSansHegarty-Regular.ttf */; };
+		D5B91E7A6C1949FEAB3EE626 /* DancingScript-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E91D7E41B94845F4B0F1C1DF /* DancingScript-VariableFont_wght.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +57,10 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = MyNewProject/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B5A2EAF9E9A6AF3CE4AF2EBA /* Pods-MyNewProject.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MyNewProject.debug.xcconfig"; path = "Target Support Files/Pods-MyNewProject/Pods-MyNewProject.debug.xcconfig"; sourceTree = "<group>"; };
 		B697D815E364C321FBA02411 /* Pods_OneSignalNotificationServiceExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_OneSignalNotificationServiceExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C7F14C7735984C8CB5F4E553 /* PlaywriteNZGuides-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PlaywriteNZGuides-Regular.ttf"; path = "../src/assets/fonts/PlaywriteNZGuides-Regular.ttf"; sourceTree = "<group>"; };
 		CA43E6972BB89A3F3584383E /* Pods-OneSignalNotificationServiceExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OneSignalNotificationServiceExtension.debug.xcconfig"; path = "Target Support Files/Pods-OneSignalNotificationServiceExtension/Pods-OneSignalNotificationServiceExtension.debug.xcconfig"; sourceTree = "<group>"; };
+		E0CC0E53990646F2BC2A467E /* BBHSansHegarty-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "BBHSansHegarty-Regular.ttf"; path = "../src/assets/fonts/BBHSansHegarty-Regular.ttf"; sourceTree = "<group>"; };
+		E91D7E41B94845F4B0F1C1DF /* DancingScript-VariableFont_wght.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "DancingScript-VariableFont_wght.ttf"; path = "../src/assets/fonts/DancingScript-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -99,6 +105,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		07B1A2A2E55F4AB7907E7B74 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E0CC0E53990646F2BC2A467E /* BBHSansHegarty-Regular.ttf */,
+				E91D7E41B94845F4B0F1C1DF /* DancingScript-VariableFont_wght.ttf */,
+				C7F14C7735984C8CB5F4E553 /* PlaywriteNZGuides-Regular.ttf */,
+			);
+			name = Resources;
+			path = "";
+			sourceTree = "<group>";
+		};
 		13B07FAE1A68108700A75B9A /* MyNewProject */ = {
 			isa = PBXGroup;
 			children = (
@@ -138,6 +155,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				07B1A2A2E55F4AB7907E7B74 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -255,6 +273,9 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				8BA134EC7C10182CB654205B /* PrivacyInfo.xcprivacy in Resources */,
+				CD566EAEDCDD4BD292C0F466 /* BBHSansHegarty-Regular.ttf in Resources */,
+				D5B91E7A6C1949FEAB3EE626 /* DancingScript-VariableFont_wght.ttf in Resources */,
+				04D1B921979A468B8DE97CAA /* PlaywriteNZGuides-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

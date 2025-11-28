@@ -188,7 +188,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: "bold",
     textAlign: "center",
     marginBottom: 6,
   },
@@ -220,7 +219,6 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 16,
-    fontWeight: "bold",
     textDecorationLine: "underline",
   },
   listContainer: {
@@ -244,7 +242,6 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: "bold",
     marginBottom: 6,
   },
   cardBody: {

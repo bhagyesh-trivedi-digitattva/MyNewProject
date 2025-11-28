@@ -1,34 +1,40 @@
-import React, { createContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LightTheme, DarkTheme } from '../theme/theme';
+import React, { createContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createTheme, getFontFamily } from "../theme/theme";
+import { applyGlobalFont } from "../theme/GlobalFont";
 
 export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [appTheme, setAppTheme] = useState(LightTheme);
+  const [mode, setMode] = useState(null);
+  const [appTheme, setAppTheme] = useState(null);
 
   useEffect(() => {
-    loadTheme();
+    loadSettings();
   }, []);
 
-  const loadTheme = async () => {
-    try {
-      const stored = await AsyncStorage.getItem('APP_THEME');
-      if (stored === 'dark') setAppTheme(DarkTheme);
-      else setAppTheme(LightTheme);
-    } catch (e) {
-      console.log(e);
-    }
+  const loadSettings = async () => {
+    const storedMode = await AsyncStorage.getItem("APP_THEME");
+    const themeMode = storedMode || "light";
+
+    const fontFamily = getFontFamily();
+    applyGlobalFont(fontFamily);
+
+    setMode(themeMode);
+    setAppTheme(createTheme(themeMode));
   };
 
   const toggleTheme = async () => {
-    const newTheme = appTheme.dark ? LightTheme : DarkTheme;
-    setAppTheme(newTheme);
-    await AsyncStorage.setItem('APP_THEME', newTheme.dark ? 'dark' : 'light');
+    const newMode = mode === "light" ? "dark" : "light";
+    await AsyncStorage.setItem("APP_THEME", newMode);
+    setMode(newMode);
+    setAppTheme(createTheme(newMode));
   };
 
+  if (!appTheme) return null;
+
   return (
-    <ThemeContext.Provider value={{ appTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ appTheme, mode, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

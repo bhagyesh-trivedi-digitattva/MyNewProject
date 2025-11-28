@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
 import { setTestValue } from "../slices/authSlice";
+// import { getCurrentFontFamily } from "../theme/GlobalFont";
 
 import MapView, { Marker } from "react-native-maps";
 import { useIsFocused } from "@react-navigation/native";
@@ -27,40 +28,49 @@ import { getCurrentLocation } from "../utils/locationService";
 
 const { width } = Dimensions.get("window");
 const GOOGLE_KEY = "AIzaSyBfCZH394cXpNT31aC7Tt4a0TQqHjbqAe4";
-const reverseGeocode = async (lat, lng) => {
-  try {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_KEY}`;
-    const res = await fetch(url);
-    const json = await res.json();
-    
-    if (json.results?.length > 0) {
-      return json.results[0].formatted_address;
-    }
-    return "Unknown Location";
-  } catch (err) {
-    console.log("Reverse Geocode Error:", err);
-    return "Unknown Location";
-  }
-};
 
 const HomeScreen = ({ navigation, route }) => {
-  const { appTheme, toggleTheme } = useContext(ThemeContext);
-const [loading, setLoading] = useState(false);
+  const { appTheme, toggleTheme, selectedFont, changeFont,fontsLoaded } = useContext(ThemeContext);
+  const [fontDebug, setFontDebug] = useState('');
+  const [showFontDropdown, setShowFontDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [myLocation, setMyLocation] = useState(null);
   const [address, setAddress] = useState("");
   const [userData, setUserData] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-
+  
+  const fontList = [
+    { label: "Default", value: "default" },
+    { label: "BBH Sans Hegarty", value: "bbHegarty" },
+    { label: "Dancing Script", value: "dancing" },
+    { label: "Playwrite Guides", value: "playwrite" },
+  ];
+  
   const isFocused = useIsFocused();
   const drawerAnim = useRef(new Animated.Value(-width * 0.7)).current;
-
   const testValue = useSelector((state) => state.auth.testValue);
   const dispatch = useDispatch();
+  const mapRef = useRef(null);
+// useEffect(() => {
+//   setFontDebug(`Font: ${selectedFont} -> ${appTheme?.fonts?.regular || 'System'}`);
+// }, [selectedFont, appTheme]);
 
-  /* Load user data */
+  useEffect(() => {
+    if (isFocused) {
+      loadUserData();
+    }
+  }, [isFocused]);
+
   useEffect(() => {
     loadUserData();
   }, []);
+
+  useEffect(() => {
+    if (route?.params?.selectedLocation) {
+      setMyLocation(route.params.selectedLocation);
+      setAddress(route.params?.address || "");
+    }
+  }, [route.params]);
 
   const loadUserData = async () => {
     try {
@@ -71,52 +81,41 @@ const [loading, setLoading] = useState(false);
     }
   };
 
-  /* Receive location from MapScreen */
-  useEffect(() => {
-    if (route?.params?.selectedLocation) {
-      setMyLocation(route.params.selectedLocation);
-      setAddress(route.params?.address || "");
-    }
-  }, [route.params]);
-const mapRef = useRef(null);
-  /* Use current device location */
-const handleLocation = async () => {
-  setLoading(true);
+  const handleLocation = async () => {
+    setLoading(true);
 
-  setTimeout(async () => {
-    const hasPermission = await requestLocationPermission();
-    if (!hasPermission) {
+    setTimeout(async () => {
+      const hasPermission = await requestLocationPermission();
+      if (!hasPermission) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const loc = await getCurrentLocation();
+        setMyLocation(loc);
+        fetchAddress(loc.latitude, loc.longitude);
+
+        setTimeout(() => {
+          mapRef.current?.animateToRegion(
+            {
+              latitude: loc.latitude,
+              longitude: loc.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            },
+            500
+          );
+        }, 200);
+
+      } catch (err) {
+        console.log("Location Error:", err);
+      }
+
       setLoading(false);
-      return;
-    }
+    }, 3000);
+  };
 
-    try {
-      const loc = await getCurrentLocation();
-      setMyLocation(loc);
-      fetchAddress(loc.latitude, loc.longitude);
-
-      setTimeout(() => {
-        mapRef.current?.animateToRegion(
-          {
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          },
-          500
-        );
-      }, 200);
-
-    } catch (err) {
-      console.log("Location Error:", err);
-    }
-
-    setLoading(false);
-  }, 3000);  // 3 seconds delay
-};
-
-
-  /* Reverse geocode */
   const fetchAddress = async (lat, lng) => {
     try {
       const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_KEY}`;
@@ -134,7 +133,6 @@ const handleLocation = async () => {
     }
   };
 
-  /* Drawer */
   const toggleDrawer = () => {
     Animated.timing(drawerAnim, {
       toValue: drawerOpen ? -width * 0.7 : 0,
@@ -144,7 +142,6 @@ const handleLocation = async () => {
     setDrawerOpen(!drawerOpen);
   };
 
-  /* Logout */
   const handleLogout = async () => {
     await AsyncStorage.removeItem("isLoggedIn");
     navigation.replace("Auth");
@@ -199,6 +196,14 @@ const handleLocation = async () => {
           <Text style={[styles.welcomeText, { color: appTheme.colors.primary }]}>
             {userData ? `Welcome, ${userData.name}!` : "Welcome 🎉"}
           </Text>
+          <Text style={{ 
+            fontSize: 14, 
+            color: appTheme.colors.text,
+            opacity: 0.8,
+            marginTop: 4
+          }}>
+            This text uses your selected global font
+          </Text>
         </View>
 
         {/* REDUX TEST */}
@@ -212,7 +217,8 @@ const handleLocation = async () => {
         <Text style={{ marginTop: 10, color: appTheme.colors.primary }}>{testValue}</Text>
 
         {/* MAP */}
-        <Text style={{ marginTop: 20, fontSize: 16, fontWeight: "bold" }}>Your Location</Text>
+        <Text style={{ marginTop: 20, fontSize: 16, color: appTheme.colors.text }}>Your Location</Text>
+
 
         <View style={styles.mapWrapper}>
           {myLocation ? (
@@ -231,7 +237,7 @@ const handleLocation = async () => {
             </MapView>
           ) : (
             <View style={styles.noLocation}>
-              <Text>No location selected</Text>
+              <Text style={{ color: appTheme.colors.text }}>No location selected</Text>
             </View>
           )}
         </View>
@@ -239,7 +245,7 @@ const handleLocation = async () => {
         {myLocation && (
           <>
             <Text style={{ marginTop: 10, color: appTheme.colors.text }}>📍 {address}</Text>
-            <Text>
+            <Text style={{ color: appTheme.colors.text }}>
               Lat: {myLocation.latitude} | Lng: {myLocation.longitude}
             </Text>
           </>
@@ -250,14 +256,13 @@ const handleLocation = async () => {
           <Text style={styles.blueBtnText}>Use My Current Location</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.greenBtn}   onPress={() => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigation.navigate("MapScreen");
-    }, 3000);
-  }}
->
+        <TouchableOpacity style={styles.greenBtn} onPress={() => {
+          setLoading(true);
+          setTimeout(() => {
+            setLoading(false);
+            navigation.navigate("MapScreen");
+          }, 3000);
+        }}>
           <Text style={styles.blueBtnText}>Select Location From Map</Text>
         </TouchableOpacity>
 
@@ -268,6 +273,15 @@ const handleLocation = async () => {
         >
           <Text style={[styles.logoutButtonText, { color: appTheme.colors.danger }]}>Logout</Text>
         </TouchableOpacity>
+
+        {/* GO TO TODO SCREEN */}
+<TouchableOpacity
+  style={[styles.blueBtn, { backgroundColor: "#8E44AD" }]}
+  onPress={() => navigation.navigate("TodoScreen")}
+>
+  <Text style={styles.blueBtnText}>Open Todo List</Text>
+</TouchableOpacity>
+
       </ScrollView>
 
       {/* DRAWER OVERLAY */}
@@ -282,13 +296,13 @@ const handleLocation = async () => {
       >
         <View style={styles.drawerHeader}>
          <Image
-  source={
-    userData?.profileImage
-      ? { uri: userData.profileImage }
-      : require("../assets/user.png")
-  }
-  style={styles.userIcon}
-/>
+            source={
+              userData?.profileImage
+                ? { uri: userData.profileImage }
+                : require("../assets/user.png")
+            }
+            style={styles.userIcon}
+          />
 
           <Text style={[styles.userName, { color: appTheme.colors.text }]}>{userData?.name}</Text>
           <Text style={[styles.userEmail, { color: appTheme.colors.gray }]}>{userData?.email}</Text>
@@ -309,15 +323,46 @@ const handleLocation = async () => {
           <Image source={require("../assets/logout.png")} style={[styles.drawerIcon]} />
           <Text style={[styles.drawerText, { color: appTheme.colors.danger }]}>Logout</Text>
         </TouchableOpacity>
-      </Animated.View>
-      {loading && (
-  <View style={styles.loaderWrapper}>
-    <View style={styles.loaderBox}>
-      <Text style={{ color: "#fff", fontSize: 16 }}>Loading...</Text>
-    </View>
-  </View>
-)}
 
+        {/* FONT SELECTOR DROPDOWN */}
+        <View style={{ marginTop: 20 }}>
+          <TouchableOpacity
+            style={[styles.fontSelector, { borderColor: appTheme.colors.primary }]}
+            onPress={() => setShowFontDropdown(!showFontDropdown)}
+          >
+            <Text style={[styles.fontSelectorText, { color: appTheme.colors.text }]}>
+              Font: {selectedFont}
+            </Text>
+          </TouchableOpacity>
+
+          {showFontDropdown && (
+            <View style={[styles.dropdownBox, { backgroundColor: appTheme.colors.card }]}>
+              {fontList.map((f) => (
+                <TouchableOpacity
+                  key={f.value}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    changeFont(f.value);
+                    setShowFontDropdown(false);
+                  }}
+                >
+                  <Text style={[styles.dropdownItemText, { color: appTheme.colors.text }]}>
+                    {f.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      </Animated.View>
+
+      {loading && (
+        <View style={styles.loaderWrapper}>
+          <View style={styles.loaderBox}>
+            <Text style={{ color: "#fff", fontSize: 16 }}>Loading...</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -327,22 +372,18 @@ export default HomeScreen;
 /************* STYLES *************/
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
   menuBtn: { paddingHorizontal: 20, paddingTop: Platform.OS === "ios" ? 10 : 20 },
   menuIcon: { width: 28, height: 28 },
-
   scrollContainer: { padding: 24 },
   header: { alignItems: "center", marginBottom: 20 },
-  welcomeText: { fontSize: 30, fontWeight: "bold" },
-
+  welcomeText: { fontSize: 30 },
   primaryButton: {
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 12,
   },
-  primaryButtonText: { fontSize: 16, fontWeight: "bold" },
-
+  primaryButtonText: { fontSize: 16 },
   mapWrapper: {
     width: "100%",
     height: 250,
@@ -351,27 +392,28 @@ const styles = StyleSheet.create({
     marginTop: 10,
     overflow: "hidden",
   },
-loaderWrapper: {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: "rgba(0,0,0,0.4)",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 9999,
-},
-
-loaderBox: {
-  backgroundColor: "#000",
-  paddingVertical: 20,
-  paddingHorizontal: 30,
-  borderRadius: 12,
-},
-
-  noLocation: { flex: 1, justifyContent: "center", alignItems: "center" },
-
+  loaderWrapper: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  },
+  loaderBox: {
+    backgroundColor: "#000",
+    paddingVertical: 20,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+  },
+  noLocation: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center" 
+  },
   blueBtn: {
     backgroundColor: "#007AFF",
     padding: 14,
@@ -384,8 +426,11 @@ loaderBox: {
     borderRadius: 10,
     marginTop: 12,
   },
-  blueBtnText: { color: "#fff", textAlign: "center", fontWeight: "600" },
-
+  blueBtnText: { 
+    color: "#fff", 
+    textAlign: "center",
+    fontSize: 16 
+  },
   logoutButton: {
     borderWidth: 1.5,
     padding: 16,
@@ -393,8 +438,7 @@ loaderBox: {
     alignItems: "center",
     marginTop: 30,
   },
-  logoutButtonText: { fontSize: 16, fontWeight: "bold" },
-
+  logoutButtonText: { fontSize: 16 },
   overlay: {
     position: "absolute",
     width: "100%",
@@ -402,7 +446,6 @@ loaderBox: {
     backgroundColor: "rgba(0,0,0,0.4)",
     zIndex: 999,
   },
-
   drawer: {
     position: "absolute",
     left: 0,
@@ -413,7 +456,6 @@ loaderBox: {
     paddingLeft: 15,
     zIndex: 1000,
   },
-
   drawerHeader: {
     alignItems: "center",
     borderBottomWidth: 1,
@@ -421,14 +463,15 @@ loaderBox: {
     paddingBottom: 12,
     marginBottom: 20,
   },
-
-  userIcon: { width: 60, height: 60 },
-  userName: { fontSize: 18, fontWeight: "bold", marginTop: 6 },
+  userName: { fontSize: 18, marginTop: 6 },
   userEmail: { fontSize: 14 },
-  drawerItem: { flexDirection: "row", alignItems: "center", paddingVertical: 12 },
+  drawerItem: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    paddingVertical: 12 
+  },
   drawerIcon: { width: 24, height: 24, marginRight: 10 },
   drawerText: { fontSize: 16 },
-
   themeToggleContainer: {
     position: "absolute",
     right: 20,
@@ -451,7 +494,43 @@ loaderBox: {
     left: 2,
     top: 2,
   },
-  iconWrapper: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 6 },
+  iconWrapper: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    paddingHorizontal: 6 
+  },
   iconSun: { fontSize: 14 },
   iconMoon: { fontSize: 14 },
+  userIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 2,
+    borderColor: "#ccc",
+    marginBottom: 10,
+  },
+  fontSelector: {
+    padding: 12,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    marginRight: 15,
+  },
+  fontSelectorText: {
+    fontSize: 16,
+  },
+  dropdownBox: {
+    marginTop: 8,
+    borderRadius: 10,
+    overflow: "hidden",
+    elevation: 4,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+  },
+  dropdownItemText: {
+    fontSize: 16,
+  },
 });

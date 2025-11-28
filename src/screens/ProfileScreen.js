@@ -8,7 +8,11 @@ import {
   Platform,
   Image,
   StatusBar,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
+
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeContext } from "../context/ThemeContext";
@@ -18,6 +22,7 @@ const ProfileScreen = () => {
 
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updatingImage, setUpdatingImage] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -34,6 +39,66 @@ const ProfileScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /* ----------------------------------------
+    🔥 HANDLE CAMERA OR GALLERY
+  ---------------------------------------- */
+  const pickImage = () => {
+    Alert.alert(
+      "Change Profile Picture",
+      "Choose an option",
+      [
+        { text: "Camera", onPress: openCamera },
+        { text: "Gallery", onPress: openGallery },
+        { text: "Cancel", style: "cancel" },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const openCamera = () => {
+    launchCamera(
+      {
+        mediaType: "photo",
+        quality: 0.8,
+        saveToPhotos: true,
+      },
+      handleImageResponse
+    );
+  };
+
+  const openGallery = () => {
+    launchImageLibrary(
+      {
+        mediaType: "photo",
+        quality: 0.8,
+      },
+      handleImageResponse
+    );
+  };
+
+  const handleImageResponse = async (res) => {
+    if (res.didCancel) return;
+    if (res.errorCode) {
+      Alert.alert("Error", "Image selection failed");
+      return;
+    }
+
+    const uri = res.assets?.[0]?.uri;
+    if (!uri) return;
+
+    setUpdatingImage(true);
+
+    const updatedUser = {
+      ...userData,
+      profileImage: uri,
+    };
+
+    await AsyncStorage.setItem("userData", JSON.stringify(updatedUser));
+    setUserData(updatedUser);
+
+    setTimeout(() => setUpdatingImage(false), 500);
   };
 
   const formatDate = (dateString) => {
@@ -84,6 +149,28 @@ const ProfileScreen = () => {
             </Text>
           </View>
 
+          {/* PROFILE IMAGE WITH EDIT BUTTON */}
+          <View style={styles.imageWrapper}>
+            <Image
+              source={
+                userData.profileImage
+                  ? { uri: userData.profileImage }
+                  : require("../assets/user.png")
+              }
+              style={styles.profileImage}
+            />
+
+            <TouchableOpacity style={styles.editImageBtn} onPress={pickImage}>
+              <Text style={styles.editImageText}>✏️</Text>
+            </TouchableOpacity>
+          </View>
+
+          {updatingImage && (
+            <Text style={{ color: appTheme.colors.primary, marginBottom: 10 }}>
+              Updating photo...
+            </Text>
+          )}
+
           {/* CARD */}
           <View
             style={[
@@ -95,7 +182,6 @@ const ProfileScreen = () => {
               },
             ]}
           >
-            {/* CARD HEADER */}
             <View
               style={[
                 styles.cardHeader,
@@ -120,30 +206,7 @@ const ProfileScreen = () => {
 
             {/* DETAILS */}
             <View style={styles.infoSection}>
-
-              <View
-                style={[
-                  styles.infoRow,
-                  { borderBottomColor: appTheme.colors.light },
-                ]}
-              >
-                <View style={{ alignItems: "center", marginBottom: 20 }}>
-  <Image
-    source={
-      userData?.profileImage
-        ? { uri: userData.profileImage }
-        : require("../assets/user.png")
-    }
-    style={{
-      width: 110,
-      height: 110,
-      borderRadius: 55,
-      borderWidth: 2,
-      borderColor: appTheme.colors.primary,
-    }}
-  />
-</View>
-
+              <View style={[styles.infoRow, { borderBottomColor: appTheme.colors.light }]}>
                 <Text style={[styles.infoLabel, { color: appTheme.colors.text }]}>
                   Full Name
                 </Text>
@@ -152,12 +215,7 @@ const ProfileScreen = () => {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.infoRow,
-                  { borderBottomColor: appTheme.colors.light },
-                ]}
-              >
+              <View style={[styles.infoRow, { borderBottomColor: appTheme.colors.light }]}>
                 <Text style={[styles.infoLabel, { color: appTheme.colors.text }]}>
                   Email Address
                 </Text>
@@ -166,12 +224,7 @@ const ProfileScreen = () => {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.infoRow,
-                  { borderBottomColor: appTheme.colors.light },
-                ]}
-              >
+              <View style={[styles.infoRow, { borderBottomColor: appTheme.colors.light }]}>
                 <Text style={[styles.infoLabel, { color: appTheme.colors.text }]}>
                   Phone Number
                 </Text>
@@ -180,12 +233,7 @@ const ProfileScreen = () => {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.infoRow,
-                  { borderBottomColor: appTheme.colors.light },
-                ]}
-              >
+              <View style={[styles.infoRow, { borderBottomColor: appTheme.colors.light }]}>
                 <Text style={[styles.infoLabel, { color: appTheme.colors.text }]}>
                   Gender
                 </Text>
@@ -194,12 +242,7 @@ const ProfileScreen = () => {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.infoRow,
-                  { borderBottomColor: appTheme.colors.light },
-                ]}
-              >
+              <View style={[styles.infoRow, { borderBottomColor: appTheme.colors.light }]}>
                 <Text style={[styles.infoLabel, { color: appTheme.colors.text }]}>
                   Date of Birth
                 </Text>
@@ -208,23 +251,11 @@ const ProfileScreen = () => {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.infoRow,
-                  { borderBottomColor: appTheme.colors.light },
-                ]}
-              >
+              <View style={[styles.infoRow, { borderBottomColor: appTheme.colors.light }]}>
                 <Text style={[styles.infoLabel, { color: appTheme.colors.text }]}>
                   Address
                 </Text>
-                <Text
-                  style={[
-                    styles.infoValue,
-                    styles.addressText,
-                    { color: appTheme.colors.gray },
-                  ]}
-                  numberOfLines={2}
-                >
+                <Text style={[styles.infoValue, styles.addressText, { color: appTheme.colors.gray }]}>
                   {userData.address}
                 </Text>
               </View>
@@ -247,35 +278,41 @@ export default ProfileScreen;
 /* -------------------- STYLES -------------------- */
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
 
-  scrollContainer: {
-    flexGrow: 1,
-    padding: 24,
-  },
-userIcon: { 
-  width: 70, 
-  height: 70, 
-  borderRadius: 35, 
-  marginBottom: 6 
-},
+  scrollContainer: { padding: 24 },
 
-  header: {
+  header: { alignItems: "center", marginBottom: 20 },
+
+  title: { fontSize: 28 },
+
+  subtitle: { fontSize: 15, marginTop: 4 },
+
+  imageWrapper: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 20,
   },
 
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
+  profileImage: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 3,
+    borderColor: "#007AFF",
   },
 
-  subtitle: {
-    fontSize: 16,
-    textAlign: "center",
-    marginTop: 4,
+  editImageBtn: {
+    position: "absolute",
+    bottom: 0,
+    right: 120,
+    backgroundColor: "#007AFF",
+    padding: 8,
+    borderRadius: 20,
+  },
+
+  editImageText: {
+    color: "#fff",
+    fontSize: 14,
   },
 
   userInfoCard: {
@@ -288,7 +325,7 @@ userIcon: {
         shadowOpacity: 0.1,
         shadowRadius: 12,
       },
-      android: { elevation: 8 },
+      android: { elevation: 6 },
     }),
   },
 
@@ -296,15 +333,12 @@ userIcon: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
-    paddingBottom: 16,
+    marginBottom: 18,
+    paddingBottom: 12,
     borderBottomWidth: 1,
   },
 
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
+  cardTitle: { fontSize: 20 },
 
   statusBadge: {
     paddingHorizontal: 10,
@@ -312,38 +346,22 @@ userIcon: {
     borderRadius: 12,
   },
 
-  statusText: {
-    fontSize: 12,
-    fontWeight: "bold",
-  },
+  statusText: { fontSize: 12 },
 
-  infoSection: {
-    gap: 16,
-  },
+  infoSection: { gap: 16 },
 
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
     paddingVertical: 8,
     borderBottomWidth: 1,
   },
 
-  infoLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    flex: 1,
-  },
+  infoLabel: { flex: 1, fontSize: 16 },
 
-  infoValue: {
-    fontSize: 16,
-    flex: 2,
-    textAlign: "right",
-  },
+  infoValue: { flex: 2, fontSize: 16, textAlign: "right" },
 
-  addressText: {
-    textAlign: "right",
-  },
+  addressText: { textAlign: "right" },
 
   loadingContainer: {
     flex: 1,
@@ -351,8 +369,6 @@ userIcon: {
     alignItems: "center",
   },
 
-  loadingText: {
-    fontSize: 16,
-    marginTop: 10,
-  },
+  loadingText: { marginTop: 10 },
 });
+

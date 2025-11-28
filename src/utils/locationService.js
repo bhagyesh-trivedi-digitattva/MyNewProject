@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import Geolocation from "@react-native-community/geolocation";
 
 export const getCurrentLocation = () => {
@@ -15,11 +16,12 @@ export const getCurrentLocation = () => {
         reject(error);
       },
       {
-        enableHighAccuracy: false,
+        enableHighAccuracy: Platform.OS === "ios",
         timeout: 15000,
         maximumAge: 0,
         forceRequestLocation: true,
-        showLocationDialog: true,
+        distanceFilter: 0,
+        showLocationDialog: Platform.OS === "android",
       }
     );
   });

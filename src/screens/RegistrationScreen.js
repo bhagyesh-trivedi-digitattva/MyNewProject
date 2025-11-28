@@ -15,7 +15,7 @@ import {
   TouchableWithoutFeedback,
   Image
 } from "react-native";
-import { launchImageLibrary } from "react-native-image-picker";
+import { launchImageLibrary ,launchCamera} from "react-native-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -106,7 +106,29 @@ const RegistrationScreen = ({ navigation }) => {
       { text: "OK", onPress: () => navigation.navigate("Login") },
     ]);
   };
-  const pickImage = () => {
+ const pickImage = () => {
+  Alert.alert(
+    "Select Option",
+    "Choose photo source",
+    [
+      {
+        text: "Camera",
+        onPress: openCamera,
+      },
+      {
+        text: "Gallery",
+        onPress: openGallery,
+      },
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+    ],
+    { cancelable: true }
+  );
+};
+
+const openGallery = () => {
   launchImageLibrary(
     {
       mediaType: "photo",
@@ -114,16 +136,35 @@ const RegistrationScreen = ({ navigation }) => {
     },
     (response) => {
       if (response.didCancel) return;
-      if (response.errorCode) {
-        Alert.alert("Error", "Image pick failed");
+      if (response.errorMessage) {
+        Alert.alert("Error", response.errorMessage);
         return;
       }
-
       const uri = response.assets[0].uri;
       setProfileImage(uri);
     }
   );
 };
+
+const openCamera = () => {
+  launchCamera(
+    {
+      mediaType: "photo",
+      saveToPhotos: true,
+      quality: 0.8,
+    },
+    (response) => {
+      if (response.didCancel) return;
+      if (response.errorMessage) {
+        Alert.alert("Error", response.errorMessage);
+        return;
+      }
+      const uri = response.assets[0].uri;
+      setProfileImage(uri);
+    }
+  );
+};
+
 
   // ------------------------------------------------------
   // ---------------- UI START ----------------------------
@@ -157,21 +198,18 @@ const RegistrationScreen = ({ navigation }) => {
 
       <View style={{ alignItems: "center", marginBottom: 20 }}>
   <TouchableOpacity onPress={pickImage}>
-    <Image
-      source={
-        profileImage
-          ? { uri: profileImage }
-          : require("../assets/user.png")
-      }
-      style={{
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        borderWidth: 2,
-        borderColor: colors.primary,
-      }}
-    />
-  </TouchableOpacity>
+  <Image
+    source={profileImage ? { uri: profileImage } : require("../assets/user.png")}
+    style={{
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      borderWidth: 2,
+      borderColor: colors.primary,
+    }}
+  />
+</TouchableOpacity>
+
 
   <Text style={{ marginTop: 8, color: colors.primary }}>
     Tap to choose profile photo
@@ -370,7 +408,6 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 26,
-    fontWeight: "bold",
     textAlign: "center",
     color: colors.primary,
     marginBottom: 20,
@@ -380,7 +417,6 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 15,
-    fontWeight: "600",
     color: colors.dark,
     marginBottom: 6,
   },
@@ -411,7 +447,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  genderText: { fontSize: 15, fontWeight: "600" },
+  genderText: { fontSize: 15},
 
   dateInput: {
     borderWidth: 1.5,
@@ -433,7 +469,6 @@ const styles = StyleSheet.create({
   registerText: {
     color: "white",
     fontSize: 18,
-    fontWeight: "bold",
   },
    loginLink: {
   textAlign: "center",
@@ -444,7 +479,6 @@ const styles = StyleSheet.create({
 
 loginBold: {
   color: colors.primary,
-  fontWeight: "bold",
 },
 
   // ---- Modal ----
@@ -474,7 +508,7 @@ loginBold: {
 
   modalTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+
     color: colors.primary,
     marginBottom: 10,
   },
@@ -496,5 +530,5 @@ loginBold: {
   confirmBtn: { backgroundColor: colors.primary, marginLeft: 10 },
 
   cancelText: { fontSize: 16, color: colors.dark },
-  confirmText: { fontSize: 16, fontWeight: "bold", color: "#fff" },
+  confirmText: { fontSize: 16, color: "#fff" },
 });

@@ -256,7 +256,6 @@ const styles = StyleSheet.create({
   btnIcon: {
     fontSize: 22,
     color: "#222",
-    fontWeight: "600",
     marginTop: -2,
   },
 
@@ -353,6 +352,5 @@ const styles = StyleSheet.create({
   confirmText: {
     color: "#fff",
     fontSize: 17,
-    fontWeight: "600",
   },
 });

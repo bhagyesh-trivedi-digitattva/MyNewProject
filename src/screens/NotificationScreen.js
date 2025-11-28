@@ -138,7 +138,6 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 28,
-    fontWeight: "bold",
     marginBottom: 5,
   },
 
@@ -175,7 +174,6 @@ const styles = StyleSheet.create({
 
   cardTitle: {
     fontSize: 16,
-    fontWeight: "bold",
     flex: 1,
     paddingRight: 10,
   },
