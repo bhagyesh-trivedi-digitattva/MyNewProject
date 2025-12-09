@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons'; 
 import { colors } from '../constants/colors';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
+import { configureGoogleSignIn } from '../utils/googleConfig';
 
 const { height } = Dimensions.get('window');
 
@@ -23,6 +26,57 @@ const LoginScreen = ({ navigation }) => {
   const [loginData, setLoginData] = useState({ identifier: '' });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+  configureGoogleSignIn();
+}, []); 
+
+const handleGoogleLogin = async () => {
+  try {
+    await GoogleSignin.hasPlayServices();    
+    
+    const result = await GoogleSignin.signIn();
+    console.log('Google Sign-In Result:', result)
+
+   const idToken = result?.data?.idToken;
+    console.log('Google ID Token:', idToken);
+
+    if (!idToken) {
+      throw new Error('Google ID token missing');
+    }
+
+   const googleCredential =
+      auth.GoogleAuthProvider.credential(idToken);
+
+    const userCredential =
+      await auth().signInWithCredential(googleCredential);
+
+    await AsyncStorage.multiSet([
+  [
+    'userData',
+    JSON.stringify({
+      name: userCredential.user.displayName,
+      email: userCredential.user.email,
+      profileImage: userCredential.user.photoURL,
+    }),
+  ],
+  ['isLoggedIn', 'true'], // ✅ REQUIRED
+]);
+
+navigation.replace('App');
+
+    navigation.replace('App');
+
+  } catch (error) {
+    console.log('Google Sign-In Error:', error);
+
+    Alert.alert(
+      'Login Error',
+      error?.message || 'Google Sign-In failed'
+    );
+  }
+};
+
+
 
   const validateIdentifier = (identifier) => {
     const newErrors = {};
@@ -175,7 +229,19 @@ const LoginScreen = ({ navigation }) => {
                 {isLoading ? 'Checking...' : 'Continue to OTP'}
               </Text>
             </TouchableOpacity>
-
+             {/* Google Sign-In Button */}
+            <TouchableOpacity
+            style={[
+            styles.googleButton,
+            Platform.OS === 'ios' ? styles.googleShadowIOS : styles.googleShadowAndroid,
+            ]}
+            onPress={handleGoogleLogin}
+            activeOpacity={0.8}
+            >
+            <Ionicons name="logo-google" size={22} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.googleButtonText}>Sign in with Google</Text>
+            </TouchableOpacity>
+ 
             <TouchableOpacity
               style={styles.registerLink}
               onPress={() => navigation.navigate('Register')}
@@ -186,6 +252,7 @@ const LoginScreen = ({ navigation }) => {
                 <Text style={styles.registerLinkText}>Register Now</Text>
               </Text>
             </TouchableOpacity>
+
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -200,6 +267,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
+  googleButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '#4285F4',
+  padding: 16,
+  borderRadius: 12,
+  marginBottom: 20,
+},
+googleButtonText: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: '600',
+},
+googleShadowIOS: {
+  shadowColor: '#4285F4',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.25,
+  shadowRadius: 6,
+},
+googleShadowAndroid: {
+  elevation: 4,
+},
+
   keyboardAvoid: {
     flex: 1,
   },

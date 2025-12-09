@@ -13,7 +13,6 @@ if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
 else
-  # REQUIRED FOR GOOGLE MAPS
   use_frameworks! :linkage => :static
 end
 
@@ -22,8 +21,13 @@ target 'MyNewProject' do
 
   use_react_native!(
     :path => config[:reactNativePath],
+    :hermes_enabled => true,
+    :fabric_enabled => true,
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+
+  pod 'GoogleSignIn'
+
 
   # -------------------------------------------------------
   # iOS Permissions (React Native Permissions)
@@ -61,5 +65,6 @@ end
 # OneSignal Notification Extension
 # -----------------------------------------------------
 target 'OneSignalNotificationServiceExtension' do
+  use_frameworks! :linkage => :static
   pod 'OneSignalXCFramework', '>= 5.0.0', '< 6.0'
 end

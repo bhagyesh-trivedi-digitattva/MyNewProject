@@ -64,13 +64,13 @@ const SplashScreen = ({ navigation }) => {
 
       <View style={styles.container}>
         {/* Logo */}
-        <View style={styles.logoContainer}>
+        {/* <View style={styles.logoContainer}>
           <Image
             source={require('../assets/logo.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
-        </View>
+        </View> */}
 
         {/* App text */}
         <Text style={styles.appName}>My Awesome App</Text>

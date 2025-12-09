@@ -19,7 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
 import { setTestValue } from "../slices/authSlice";
 // import { getCurrentFontFamily } from "../theme/GlobalFont";
-
+import crashlytics from '@react-native-firebase/crashlytics';
 import MapView, { Marker } from "react-native-maps";
 import { useIsFocused } from "@react-navigation/native";
 
@@ -46,6 +46,12 @@ const HomeScreen = ({ navigation, route }) => {
     { label: "Playwrite Guides", value: "playwrite" },
   ];
   
+  const testCrash = () => {
+  crashlytics().log('Test crash triggered');
+  crashlytics().crash();
+  alert("App will crash now! This is a test.");
+  };
+
   const isFocused = useIsFocused();
   const drawerAnim = useRef(new Animated.Value(-width * 0.7)).current;
   const testValue = useSelector((state) => state.auth.testValue);
@@ -264,6 +270,9 @@ const HomeScreen = ({ navigation, route }) => {
           }, 3000);
         }}>
           <Text style={styles.blueBtnText}>Select Location From Map</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={testCrash}>
+        <Text style={{ color: 'red' }}>CRASH APP</Text>
         </TouchableOpacity>
 
         {/* LOGOUT */}

@@ -1,70 +1,43 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, FlatList } from "react-native";
-import axios from "axios";
+import React, { useState,useEffect } from "react";
+import { View, Text, Button } from "react-native";
+import TodoList from "../screens/TodoList";
+import { usePrefetch } from "../slices/ApiSlice";
 
 export default function TodoScreen() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [todos, setTodos] = useState([]);
-  const [error, setError] = useState("");
+  const prefetchTodos = usePrefetch("getAllTodos");
 
   useEffect(() => {
-    setIsLoading(true);
-
-    axios
-      .get("https://dummyjson.com/todos")
-      .then((response) => {
-        console.log("Response:", response);
-        setTodos(response.data.todos);
-      })
-      .catch((err) => {
-        console.log("Error:", err);
-        setError("Error fetching todos");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    console.log("🔥 Prefetching INSIDE Provider...");
+    prefetchTodos(undefined, { ifOlderThan: 10 }); 
   }, []);
 
-  if (isLoading) {
-    return (
-      <View >
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={{ marginTop: 10 }}>Loading Todos...</Text>
-      </View>
-    );
-  }
+  const [show, setShow] = useState(false);
 
-  if (error) {
-    return (
-      <View >
-        <Text style={{ color: "red", fontSize: 16 }}>{error}</Text>
-      </View>
-    );
-  }
+  const handleToggle = () => {
+    console.log("Toggling TodoList component");
+    setShow((prev) => !prev);
+  };
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text>Todo List</Text>
+      <Text
+        style={{
+          fontSize: 20,
+          marginBottom: 10,
+          color: "red",
+          marginTop: 15,
+        }}
+      >
+        Todo List
+      </Text>
 
-      <FlatList
-        data={todos}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View >
-            <Text style={{color:"blue"}} >
-              {item.id}
-            </Text>
-            <Text style={{color:"orange"}} >
-                {item.todo}
-            </Text>
-            <Text style={{ color: item.completed ? "green" : "red" }}>
-              {item.completed ? "Completed" : "Pending"}
-            </Text>
-          </View>
-        )}
+      {/* Toggle TodoList */}
+      {show && <TodoList />}
+
+      <Button
+        title={show ? "Hide TodoList" : "Show TodoList"}
+        onPress={handleToggle}
       />
     </View>
   );
 }
-
-

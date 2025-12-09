@@ -213,7 +213,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
     marginBottom: 10,
@@ -239,7 +238,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     textAlign: 'center',
     fontSize: 24,
-    fontWeight: 'bold',
     color: colors.dark,
     backgroundColor: colors.white,
   },
@@ -276,7 +274,6 @@ const styles = StyleSheet.create({
   verifyButtonText: {
     color: colors.white,
     fontSize: 18,
-    fontWeight: 'bold',
   },
   resendButton: {
     alignItems: 'center',
@@ -286,7 +283,6 @@ const styles = StyleSheet.create({
   resendText: {
     fontSize: 16,
     color: colors.primary,
-    fontWeight: '600',
   },
   backButton: {
     alignItems: 'center',

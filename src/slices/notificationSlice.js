@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const notificationSlice = createSlice({
   name: 'notification',
   initialState: {
-    count: 0,
+    count: 4,
   },
   reducers: {
     setNotificationCount(state, action) {
